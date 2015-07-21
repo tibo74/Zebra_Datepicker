@@ -2258,9 +2258,9 @@
 				// W + week number
 		        html += '<td class="' + $.trim(class_name) + '">W' + weekNumber
 															+ '<br/>-<br/>'
-															+ moment(firstDateOfWeek).format(plugin.settings.format.toUpperCase())
+															+ format(moment(firstDateOfWeek).toDate())
 															+ '<br/>'
-															+ moment(firstDateOfWeek).add(6, 'days').format(plugin.settings.format.toUpperCase()) + '</td>';
+															+ format(moment(firstDateOfWeek).add(6, 'days').toDate()) + '</td>';
 
 				// new line when 3 weeks added
         		if (i === 2) {
