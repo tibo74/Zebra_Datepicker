@@ -841,6 +841,10 @@
                         // because we've changed years, reset the month to January
                         first_selectable_month = 0;
 
+						// break the loop if last selectable date passed. No date available in this case
+                        if (first_selectable_year > last_selectable_year) {
+	                        break;
+                        }
                     }
 
                 }
@@ -865,7 +869,6 @@
 
                         // because we've changed months, reset the day to the first day of the month
                         first_selectable_day = 1;
-
                     }
 
                     // if we moved to a following year
@@ -894,6 +897,11 @@
 
                     }
 
+                	// break the loop if last selectable date passed. No date available in this case
+                    if (first_selectable_year > last_selectable_year && first_selectable_month > last_selectable_month) {
+                    	break;
+                    }
+
                 }
 
                 // loop until we find the first selectable day
@@ -915,6 +923,10 @@
                     first_selectable_month = date.getMonth();
                     first_selectable_day = date.getDate();
 
+                	// break the loop if last selectable date passed. No date available in this case
+                    if (first_selectable_year > last_selectable_year && first_selectable_month > last_selectable_month && first_selectable_day > last_selectable_day) {
+                    	break;
+                    }
                 }
 
                 // use the Date object to normalize the date
