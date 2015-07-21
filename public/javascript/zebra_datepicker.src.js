@@ -367,11 +367,12 @@
         };
 
         // private properties
-        var view, datepicker, icon, header, daypicker, monthpicker, yearpicker, cleardate, current_system_month, current_system_year,
-            current_system_day, first_selectable_month, first_selectable_year, first_selectable_day, selected_month, selected_year,
-            default_day, default_month, default_year, enabled_dates, disabled_dates, shim, start_date, end_date, last_selectable_day,
-            last_selectable_year, last_selectable_month, daypicker_cells, monthpicker_cells, yearpicker_cells, views, clickables,
-            selecttoday, footer, show_select_today, timeout, uniqueid;
+        var view, datepicker, icon, header, daypicker, weekpicker, monthpicker, quarterpicker, semesterpicker, yearpicker, cleardate, current_system_month, current_system_week, current_system_year,
+            current_system_quarter, current_system_semester, current_system_day, first_selectable_week, first_selectable_quarter, first_selectable_semester, first_selectable_month, first_selectable_year,
+			first_selectable_day, selected_week, selected_month, selected_quarter, selected_semester, selected_year, default_day, default_week, default_month, default_quarter, default_semester, 
+			default_year, enabled_dates, disabled_dates, shim, start_date, end_date, last_selectable_day, last_selectable_week, last_selectable_quarter, last_selectable_semester, last_selectable_year,
+			last_selectable_month, daypicker_cells, weekpicker_cells, monthpicker_cells, quarterpicker_cells, semesterpicker_cells, yearpicker_cells, views, clickables, selecttoday, footer,
+			show_select_today, timeout, uniqueid;
 
         var plugin = this;
 
@@ -475,6 +476,15 @@
             // if invalid format (no days, no months, no years) use the default where the user is able to cycle through
             // all the views
             else views = ['years', 'months', 'days'];
+
+        	// specific periodicity: week, quarter or semester in view field
+            if (plugin.settings.view === "weeks") {
+				views = ["years", "months", "weeks"];
+            } else if (plugin.settings.view === "quarters") {
+				views = ["years", "quarters"];
+            } else if (plugin.settings.view === "semesters") {
+				views = ["years", "semesters"];
+			}
 
             // if the starting view is not amongst the views the user can cycle through, set the correct starting view
             if ($.inArray(plugin.settings.view, views) == -1) plugin.settings.view = views[views.length - 1];
@@ -583,6 +593,12 @@
             current_system_year = date.getFullYear();
             first_selectable_day = reference_date.getDate();
             current_system_day = date.getDate();
+            first_selectable_week = getWeekNumber(reference_date);
+            current_system_week = getWeekNumber(date);
+            first_selectable_quarter = getQuarterNumber(reference_date);
+            current_system_quarter = getQuarterNumber(date);
+            first_selectable_semester = getSemesterNumber(reference_date);
+            current_system_semester = getSemesterNumber(date);
 
             // check if the calendar has any restrictions
 
@@ -600,6 +616,9 @@
                 last_selectable_month = end_date.getMonth();
                 last_selectable_year = end_date.getFullYear();
                 last_selectable_day = end_date.getDate();
+                last_selectable_week = getWeekNumber(end_date);
+                last_selectable_quarter = getQuarterNumber(end_date);
+                last_selectable_semester = getSemesterNumber(end_date);
 
             } else if (
 
@@ -648,6 +667,9 @@
                 first_selectable_month = start_date.getMonth();
                 first_selectable_year = start_date.getFullYear();
                 first_selectable_day = start_date.getDate();
+                first_selectable_week = getWeekNumber(start_date);
+                first_selectable_quarter = getQuarterNumber(start_date);
+                first_selectable_semester = getSemesterNumber(start_date);
 
                 // if an exact ending date was given and the date is after the starting date, use that as a ending date
                 if (tmp_end_date && +tmp_end_date >= +start_date) end_date = tmp_end_date;
@@ -671,7 +693,9 @@
                     last_selectable_month = end_date.getMonth();
                     last_selectable_year = end_date.getFullYear();
                     last_selectable_day = end_date.getDate();
-
+                    last_selectable_week = getWeekNumber(end_date);
+                    last_selectable_quarter = getQuarterNumber(end_date);
+                    last_selectable_semester = getSemesterNumber(end_date);
                 }
 
             } else if (
@@ -711,6 +735,9 @@
                 last_selectable_month = end_date.getMonth();
                 last_selectable_year = end_date.getFullYear();
                 last_selectable_day = end_date.getDate();
+                last_selectable_week = getWeekNumber(end_date);
+                last_selectable_quarter = getQuarterNumber(end_date);
+                last_selectable_semester = getSemesterNumber(end_date);
 
                 // if an exact starting date was given, and the date is before the ending date, use that as a starting date
                 if (tmp_start_date && +tmp_start_date < +end_date) start_date = tmp_start_date;
@@ -734,7 +761,9 @@
                     first_selectable_month = start_date.getMonth();
                     first_selectable_year = start_date.getFullYear();
                     first_selectable_day = start_date.getDate();
-
+                    first_selectable_week = getWeekNumber(start_date);
+                    first_selectable_quarter = getQuarterNumber(start_date);
+                    first_selectable_semester = getSemesterNumber(start_date);
                 }
 
             // if there are disabled dates
@@ -778,7 +807,9 @@
                             first_selectable_year = parseInt(matches[1], 10);
                             first_selectable_month = parseInt(matches[2], 10) - 1;
                             first_selectable_day = parseInt(matches[3], 10);
-
+                            first_selectable_week = getWeekNumber(first_selectable_day);
+                            first_selectable_quarter = getQuarterNumber(first_selectable_day);
+                            first_selectable_semester = getSemesterNumber(first_selectable_day);
                         }
 
                         // don't look further
@@ -1078,7 +1109,10 @@
                         '</tr>' +
                     '</table>' +
                     '<table class="dp_daypicker"></table>' +
+                    '<table class="dp_weekpicker"></table>' +
                     '<table class="dp_monthpicker"></table>' +
+                    '<table class="dp_quarterpicker"></table>' +
+                    '<table class="dp_semesterpicker"></table>' +
                     '<table class="dp_yearpicker"></table>' +
                     '<table class="dp_footer"><tr>' +
                         '<td class="dp_today"' + (plugin.settings.show_clear_date !== false ? ' style="width:50%"' : '') + '>' + show_select_today + '</td>' +
@@ -1095,7 +1129,10 @@
             // create references to the different parts of the date picker
             header = $('table.dp_header', datepicker);
             daypicker = $('table.dp_daypicker', datepicker);
+            weekpicker = $('table.dp_weekpicker', datepicker);
             monthpicker = $('table.dp_monthpicker', datepicker);
+            quarterpicker = $('table.dp_quarterpicker', datepicker);
+            semesterpicker = $('table.dp_semesterpicker', datepicker);
             yearpicker = $('table.dp_yearpicker', datepicker);
             footer = $('table.dp_footer', datepicker);
             selecttoday = $('td.dp_today', footer);
@@ -1137,13 +1174,13 @@
 
                 // if view is "months"
                 // decrement year by one
-                if (view == 'months') selected_year--;
+            	if (view == 'months' || view == 'quarters' || view == 'semesters') selected_year--;
 
-                // if view is "years"
+                // if view is "years", "semesters" or "quarters"
                 // decrement years by 12
                 else if (view == 'years') selected_year -= 12;
-
-                // if view is "days"
+					
+                // if view is "days" or "week"
                 // decrement the month and
                 // if month is out of range
                 else if (--selected_month < 0) {
@@ -1163,13 +1200,30 @@
             $('.dp_caption', header).bind('click', function() {
 
                 // if current view is "days", take the user to the next view, depending on the format
-                if (view == 'days') view = ($.inArray('months', views) > -1 ? 'months' : ($.inArray('years', views) > -1 ? 'years' : 'days'));
+            	if (view == 'days') view = ($.inArray('months', views) > -1 ? 'months' :
+												($.inArray('years', views) > -1 ? 'years' : 'days'));
+
+            		// if current view is "weeks", take the user to the next view, depending on the format
+            	else if (view == 'weeks') view = ($.inArray('months', views) > -1 ? 'months' :
+													($.inArray('years', views) > -1 ? 'years' : "weeks"));
 
                 // if current view is "months", take the user to the next view, depending on the format
-                else if (view == 'months') view = ($.inArray('years', views) > -1 ? 'years' : ($.inArray('days', views) > -1 ? 'days' : 'months'));
+                else if (view == 'months') view = ($.inArray('years', views) > -1 ? 'years' :
+														($.inArray('days', views) > -1 ? 'days' :
+															($.inArray("weeks, views") > -1 ? "weeks" : 'months')));
+
+                // if current view is "quarters", take the user to the next view, depending on the format
+                else if (view == 'quarters') view = ($.inArray('years', views) > -1 ? 'years' : 'quarters');
+
+                // if current view is "semesters", take the user to the next view, depending on the format
+                else if (view == 'semesters') view = ($.inArray('years', views) > -1 ? 'years' : 'semesters');
 
                 // if current view is "years", take the user to the next view, depending on the format
-                else view = ($.inArray('days', views) > -1 ? 'days' : ($.inArray('months', views) > -1 ? 'months' : 'years'));
+                else if (view == 'years') view = ($.inArray('days', views) > -1 ? 'days' :
+													 ($.inArray('weeks', views) > -1 ? 'weeks' :
+														 ($.inArray('months', views) > -1 ? 'months' :
+															 ($.inArray("quarters", views) > -1 ? "quarters" :
+																 ($.inArray("semesters", views) > -1 ? "semesters" : 'years')))));
 
                 // generate the appropriate view
                 manage_views();
@@ -1181,13 +1235,13 @@
 
                 // if view is "months"
                 // increment year by 1
-                if (view == 'months') selected_year++;
+            	if (view == 'months' || view == 'quarters' || view == 'semesters') selected_year++;
 
-                // if view is "years"
+                // if view is "years", "semester" or "quarter"
                 // increment years by 12
                 else if (view == 'years') selected_year += 12;
 
-                // if view is "days"
+                // if view is "days" or "week"
                 // increment the month and
                 // if month is out of range
                 else if (++selected_month == 12) {
@@ -1217,6 +1271,21 @@
 
             });
 
+        	// attach a click event for the cells in the week picker
+	        weekpicker.delegate("td:not(.dp_disabled)", "click", function() {
+	        	// get the week we've clicked on
+	        	var matches = $(this).attr('class').match(/dp\_week\_([0-9]+)/);
+
+	        	// set the selected week
+	        	selected_week = to_int(matches[1]);
+
+	        	// determine the first day of the selected week
+	        	var selectedDate = getFirstDateOfWeek(selected_week, selected_month, selected_year);
+
+	        	// put selected date in the element the plugin is attached to, and hide the date picker
+				select_date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 'weeks', $(this));
+	        });
+
             // attach a click event for the cells in the month picker
             monthpicker.delegate('td:not(.dp_disabled)', 'click', function() {
 
@@ -1226,26 +1295,67 @@
                 // set the selected month
                 selected_month = to_int(matches[1]);
 
-                // if user can select only years and months
-                if ($.inArray('days', views) == -1)
+                // if user can select days
+                if ($.inArray('days', views) > -1) {
+	                
+                	// direct the user to the "days" view
+                	view = 'days';
 
-                    // put selected date in the element the plugin is attached to, and hide the date picker
-                    select_date(selected_year, selected_month, 1, 'months', $(this));
+                	// if date picker is always visible
+                	// empty the value in the text box the date picker is attached to
+                	if (plugin.settings.always_visible) $element.val('');
 
+                	// generate the appropriate view
+                	manage_views();
+                }
+                // if user can select weeks
+                else if ($.inArray('weeks', views) > -1) {
+
+                		// direct the user to the "weeks" view
+                		view = 'weeks';
+
+                		// if date picker is always visible
+                		// empty the value in the text box the date picker is attached to
+                		if (plugin.settings.always_visible) $element.val('');
+
+                		// generate the appropriate view
+                		manage_views();
+                	}
                 else {
-
-                    // direct the user to the "days" view
-                    view = 'days';
-
-                    // if date picker is always visible
-                    // empty the value in the text box the date picker is attached to
-                    if (plugin.settings.always_visible) $element.val('');
-
-                    // generate the appropriate view
-                    manage_views();
-
+                	// put selected date in the element the plugin is attached to, and hide the date picker
+                	select_date(selected_year, selected_month, 1, 'months', $(this));
                 }
 
+            });
+
+        	// attach a click event for the cells in the quarter picker
+            quarterpicker.delegate("td:not(.dp_disabled)", "click", function () {
+            	// get the quarter we've clicked on
+            	var matches = $(this).attr('class').match(/dp\_quarter\_([0-9]+)/);
+
+            	// set the selected quarter
+            	selected_quarter = to_int(matches[1]);
+
+            	// determine the first day of the selected quarter
+            	var selectedDate = getFirstDateOfQuarter(selected_quarter, selected_year);
+
+            	// put selected date in the element the plugin is attached to, and hide the date picker
+            	select_date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 'quarters', $(this));
+            });
+
+        	// attach a click event for the cells in the semester picker
+            semesterpicker.delegate("td:not(.dp_disabled)", "click", function () {
+            	// get the semester we've clicked on
+            	var matches = $(this).attr('class').match(/dp\_semester\_([0-9]+)/);
+
+            	// set the selected semester
+            	selected_semester = to_int(matches[1]);
+
+            	// determine the first day of the selected semester
+            	var selectedDate = getFirstDateOfSemester(selected_semester, selected_year);
+
+            	// put selected date in the element the plugin is attached to, and hide the date picker
+            	select_date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 'semesters', $(this));
             });
 
             // attach a click event for the cells in the year picker
@@ -1254,25 +1364,46 @@
                 // set the selected year
                 selected_year = to_int($(this).html());
 
-                // if user can select only years
-                if ($.inArray('months', views) == -1)
+                // if user can select months
+	            if ($.inArray('months', views) > -1) {
+		            // direct the user to the "months" view
+		            view = 'months';
 
-                    // put selected date in the element the plugin is attached to, and hide the date picker
-                    select_date(selected_year, 1, 1, 'years', $(this));
+		            // if date picker is always visible
+		            // empty the value in the text box the date picker is attached to
+		            if (plugin.settings.always_visible) $element.val('');
 
-                else {
+		            // generate the appropriate view
+		            manage_views();
+	            }
+	            // if user can select quarter
+	            else if ($.inArray('quarters', views) > -1) {
+	            	// direct the user to the "quarters" view
+	            	view = 'quarters';
 
-                    // direct the user to the "months" view
-                    view = 'months';
+	            	// if date picker is always visible
+	            	// empty the value in the text box the date picker is attached to
+	            	if (plugin.settings.always_visible) $element.val('');
 
-                    // if date picker is always visible
-                    // empty the value in the text box the date picker is attached to
-                    if (plugin.settings.always_visible) $element.val('');
+	            	// generate the appropriate view
+	            	manage_views();
+	            }
+	            // if user can select semester
+	            else if ($.inArray('semesters', views) > -1) {
+	            	// direct the user to the "semesters" view
+	            	view = 'semesters';
 
-                    // generate the appropriate view
-                    manage_views();
+	            	// if date picker is always visible
+	            	// empty the value in the text box the date picker is attached to
+	            	if (plugin.settings.always_visible) $element.val('');
 
-                }
+	            	// generate the appropriate view
+	            	manage_views();
+	            }
+	            else {
+		            // put selected date in the element the plugin is attached to, and hide the date picker
+		            select_date(selected_year, 1, 1, 'years', $(this));
+	            }
 
             });
 
@@ -1442,6 +1573,12 @@
                 default_year = default_date.getFullYear();
                 selected_year = default_date.getFullYear();
                 default_day = default_date.getDate();
+                default_week = getWeekNumber(default_date);
+                selected_week = getWeekNumber(default_date);
+                default_quarter = getQuarterNumber(default_date);
+                selected_quarter = getQuarterNumber(default_date);
+                default_semester = getSemesterNumber(default_date);
+                selected_semester = getSemesterNumber(default_date);
 
                 // if the default date represents a disabled date
                 if (is_disabled(default_year, default_month, default_day)) {
@@ -2071,6 +2208,81 @@
 
         };
 
+    	/**
+		 *  Generates the week picker view, and displays it
+		 *
+		 *  @return void
+		 *
+		 *  @access private
+		 */
+        var generate_weekpicker = function () {
+        	// manage header caption and enable/disable navigation buttons if necessary
+        	manage_header(plugin.settings.header_captions['days']);
+
+			// get selected month's weeks number
+        	var firstWeek = getWeekNumber(new Date(selected_year, selected_month, 1));
+        	var lastWeek = getWeekNumber(new Date(selected_year, selected_month + 1, 0));
+
+        	var weekList = new Array();
+	        var start = firstWeek;
+	        if (firstWeek === 52 || firstWeek === 53) { // when week 53 end in january
+	        	weekList[0] = firstWeek;
+		        start = 0;
+	        }
+
+	        for (var i = (start === 0 ? 1 : 0) ; i < (lastWeek === 1 ? 53 - firstWeek : lastWeek - start + 1) ; i++) {
+        		weekList[i] = start + i;
+			}
+
+			if (lastWeek === 1) { // when week 1 start in december
+				weekList[weekList.length] = 1;
+			}
+
+			// start generating html
+			// first line (3 weeks)
+        	var html = "<tr>";
+        	for (var i = 0; i < weekList.length; i++) {
+		        var weekNumber = weekList[i];
+		        var class_name = "dp_week_" + weekNumber;
+				
+	        	// if week needs to be disabled
+		        var firstDateOfWeek = getFirstDateOfWeek(weekNumber, selected_month, selected_year);
+		        if (is_disabled(firstDateOfWeek.getFullYear(), firstDateOfWeek.getMonth(), firstDateOfWeek.getDate())) class_name += ' dp_disabled';
+
+        		// else, if a date is already selected and this is that particular week, highlight it
+		        else if (default_week !== false && default_week == weekNumber && selected_year == default_year) class_name += ' dp_selected';
+
+        		// else, if this the current system week, highlight it
+		        else if (current_system_week == weekNumber && current_system_year == selected_year) class_name += ' dp_current';
+
+				// W + week number
+		        html += '<td class="' + $.trim(class_name) + '">W' + weekNumber
+															+ '<br/>-<br/>'
+															+ moment(firstDateOfWeek).format(plugin.settings.format.toUpperCase())
+															+ '<br/>'
+															+ moment(firstDateOfWeek).add(6, 'days').format(plugin.settings.format.toUpperCase()) + '</td>';
+
+				// new line when 3 weeks added
+        		if (i === 2) {
+        			html += "</tr><tr>";
+		        }
+			}
+			html += "</tr>";
+			
+			// inject into the DOM
+			weekpicker.html($(html));
+
+			// if date picker is always visible
+			if (plugin.settings.always_visible)
+
+				// cache all the cells
+				// (we need them so that we can easily remove the "dp_selected" class from all of them when user selects a week)
+				weekpicker_cells = $('td:not(.dp_disabled)',weekpicker);
+
+			// make the week picker visible
+			weekpicker.show();
+		}
+
         /**
          *  Generates the month picker view, and displays it
          *
@@ -2126,7 +2338,105 @@
 
         };
 
-        /**
+    	/**
+		 *  Generates the quarter picker view, and displays it
+		 *
+		 *  @return void
+		 *
+		 *  @access private
+		 */
+        var generate_quarterpicker = function () {
+        	// manage header caption and enable/disable navigation buttons if necessary
+        	manage_header(plugin.settings.header_captions['months']);
+			
+        	// start generating html
+        	// first line (2 quarters)
+        	var html = "<tr>";
+        	var count = 0;
+        	for (var i = 0; i < 4; i++) {
+        		count++;
+        		var class_name = "dp_quarter_" + i;
+
+        		// if quarter needs to be disabled
+        		var firstDateOfQuarter = getFirstDateOfQuarter(i, selected_year);
+        		if (is_disabled(selected_year, firstDateOfQuarter.getMonth(), firstDateOfQuarter.getDate())) class_name += ' dp_disabled';
+
+        		// else, if a date is already selected and this is that particular quarter, highlight it
+        		else if (default_quarter !== false && default_quarter == i && selected_year == default_year) class_name += ' dp_selected';
+
+        		// else, if this the current system quarter, highlight it
+        		else if (current_system_quarter == i && current_system_year == selected_year) class_name += ' dp_current';
+
+        		// Q + quarter number
+        		html += '<td class="' + $.trim(class_name) + '">Q' + (i + 1) + '</td>';
+
+        		// new line when 2 quarters added
+        		if (count === 2) {
+        			html += "</tr><tr>";
+        		}
+        	}
+        	html += "</tr>";
+
+        	// inject into the DOM
+        	quarterpicker.html($(html));
+
+        	// if date picker is always visible
+        	if (plugin.settings.always_visible)
+
+        		// cache all the cells
+        		// (we need them so that we can easily remove the "dp_selected" class from all of them when user selects a quarter)
+        		quarterpicker_cells = $('td:not(.dp_disabled)', quarterpicker);
+
+        	// make the quarter picker visible
+        	quarterpicker.show();
+        }
+
+    	/**
+		 *  Generates the semester picker view, and displays it
+		 *
+		 *  @return void
+		 *
+		 *  @access private
+		 */
+        var generate_semesterpicker = function () {
+        	// manage header caption and enable/disable navigation buttons if necessary
+        	manage_header(plugin.settings.header_captions['months']);
+			
+        	// start generating html
+        	var html = "<tr>";
+        	for (var i = 0; i < 2; i++) {
+        		var class_name = "dp_semester_" + i;
+
+        		// if semester needs to be disabled
+        		var firstDateOfSemester = getFirstDateOfSemester(i, selected_year);
+        		if (is_disabled(selected_year, firstDateOfSemester.getMonth(), firstDateOfSemester.getDate())) class_name += ' dp_disabled';
+
+        		// else, if a date is already selected and this is that particular semester, highlight it
+        		else if (default_semester !== false && default_semester == i && selected_year == default_year) class_name += ' dp_selected';
+
+        		// else, if this the current system semester, highlight it
+        		else if (current_system_semester == i && current_system_year == selected_year) class_name += ' dp_current';
+
+        		// S + semester number
+        		html += '<td class="' + $.trim(class_name) + '">S' + (i + 1) + '</td>';
+        	}
+        	html += "</tr>";
+
+        	// inject into the DOM
+        	semesterpicker.html($(html));
+
+        	// if date picker is always visible
+        	if (plugin.settings.always_visible)
+
+        		// cache all the cells
+        		// (we need them so that we can easily remove the "dp_selected" class from all of them when user selects a semester)
+        		semesterpicker_cells = $('td:not(.dp_disabled)', semesterpicker);
+
+        	// make the semester picker visible
+        	semesterpicker.show();
+        }
+
+	    /**
          *  Generates the year picker view, and displays it
          *
          *  @return void
@@ -2528,77 +2838,143 @@
         var manage_views = function() {
 
             // if the day picker was not yet generated
-            if (daypicker.text() === '' || view == 'days') {
+	        if (daypicker.text() === '' || view == 'days') {
 
-                // if the day picker was not yet generated
-                if (daypicker.text() === '') {
+		        // if the day picker was not yet generated
+		        if (daypicker.text() === '') {
 
-                    // if date picker is not always visible
-                    if (!plugin.settings.always_visible)
+			        // if date picker is not always visible
+			        if (!plugin.settings.always_visible)
+// temporarily set the date picker's left outside of view
+			        // so that we can later grab its width and height
+				        datepicker.css('left', -1000);
 
-                        // temporarily set the date picker's left outside of view
-                        // so that we can later grab its width and height
-                        datepicker.css('left', -1000);
+			        // temporarily make the date picker visible
+			        // so that we can later grab its width and height
+			        datepicker.css('visibility', 'visible');
 
-                    // temporarily make the date picker visible
-                    // so that we can later grab its width and height
-                    datepicker.css('visibility', 'visible');
+			        // generate the day picker
+			        generate_daypicker();
 
-                    // generate the day picker
-                    generate_daypicker();
+			        // get the day picker's width and height
+			        var width = daypicker.outerWidth(),
+				        height = daypicker.outerHeight();
 
-                    // get the day picker's width and height
-                    var width = daypicker.outerWidth(),
-                        height = daypicker.outerHeight();
+		        	// make the week picker have the same size as the day picker
+			        weekpicker.css({
+			        	'width': width,
+			        	'height': height
+			        });
 
-                    // make the month picker have the same size as the day picker
-                    monthpicker.css({
-                        'width':    width,
-                        'height':   height
-                    });
+		        	// make the month picker have the same size as the day picker
+			        monthpicker.css({
+			        	'width': width,
+			        	'height': height
+			        });
 
-                    // make the year picker have the same size as the day picker
-                    yearpicker.css({
-                        'width':    width,
-                        'height':   height
-                    });
+		        	// make the quarter picker have the same size as the day picker
+			        quarterpicker.css({
+			        	'width': width,
+			        	'height': height
+			        });
 
-                    // make the header and the footer have the same size as the day picker
-                    header.css('width', width);
-                    footer.css('width', width);
+			        // make the semester picker have the same size as the day picker
+			        semesterpicker.css({
+				        'width': width,
+				        'height': height
+			        });
 
-                    // hide the date picker again
-                    datepicker.css('visibility', '').addClass('dp_hidden');
+			        // make the year picker have the same size as the day picker
+			        yearpicker.css({
+				        'width': width,
+				        'height': height
+			        });
 
-                // if the day picker was previously generated at least once
-                // generate the day picker
-                } else generate_daypicker();
+			        // make the header and the footer have the same size as the day picker
+			        header.css('width', width);
+			        footer.css('width', width);
 
-                // hide the year and the month pickers
-                monthpicker.hide();
-                yearpicker.hide();
+			        // hide the date picker again
+			        datepicker.css('visibility', '').addClass('dp_hidden');
 
-            // if the view is "months"
+			        // if the day picker was previously generated at least once
+			        // generate the day picker
+		        } else generate_daypicker();
+
+	        	// hide the other pickers
+		        weekpicker.hide();
+		        monthpicker.hide();
+		        quarterpicker.hide();
+		        semesterpicker.hide();
+		        yearpicker.hide();
+
+
+			// if the view is "weeks"
+	        } else if (view === "weeks") {
+
+	        	// generate the week picker
+		        generate_weekpicker();
+
+	        	// hide the other pickers
+		        daypicker.hide();
+	        	monthpicker.hide();
+	        	quarterpicker.hide();
+	        	semesterpicker.hide();
+	        	yearpicker.hide();
+
+	        // if the view is "months"
             } else if (view == 'months') {
 
                 // generate the month picker
                 generate_monthpicker();
-
-                // hide the day and the year pickers
+				
+            	// hide the other pickers
                 daypicker.hide();
+                weekpicker.hide();
+                quarterpicker.hide();
+                semesterpicker.hide();
                 yearpicker.hide();
+
+            	// if the view is "quarters"
+            } else if (view === "quarters") {
+
+				// generate the quarter picker
+				generate_quarterpicker();
+
+				// hide the other pickers
+				daypicker.hide();
+				weekpicker.hide();
+				monthpicker.hide();
+				semesterpicker.hide();
+				yearpicker.hide();
+
+				// if the view is "semesters"
+            } else if (view === "semesters") {
+
+            	// generate the semester picker
+            	generate_semesterpicker();
+
+				// hide the other pickers
+				daypicker.hide();
+				weekpicker.hide();
+				monthpicker.hide();
+				quarterpicker.hide();
+				yearpicker.hide();
 
             // if the view is "years"
             } else if (view == 'years') {
 
                 // generate the year picker
-                generate_yearpicker();
+            	generate_yearpicker();
 
-                // hide the day and the month pickers
-                daypicker.hide();
-                monthpicker.hide();
+            	// hide the other pickers
+            	daypicker.hide();
+            	weekpicker.hide();
+            	monthpicker.hide();
+            	quarterpicker.hide();
+            	semesterpicker.hide();
 
-            }
+            } else if (view)
 
             // if a callback function exists for when navigating through months/years
             if (plugin.settings.onChange && typeof plugin.settings.onChange == 'function' && undefined !== view) {
@@ -2606,14 +2982,23 @@
                 // get the "active" elements in the view (ignoring the disabled ones)
                 var elements = (view == 'days' ?
                                     daypicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
-                                        (view == 'months' ?
-                                            monthpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
-                                                yearpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)')));
+										(view === "weeks" ?
+											weekpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
+											(view == 'months' ?
+												monthpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
+												(view === "quarters" ?
+													quarterpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
+													(view === "semesters" ?
+														semesterpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)') :
+														yearpicker.find('td:not(.dp_disabled, .dp_weekend_disabled, .dp_not_in_month)'))))));
 
                 // iterate through the active elements
                 // and attach a "date" data attribute to each element in the form of
-                // YYYY-MM-DD if the view is "days"
-                // YYYY-MM if the view is "months"
+            	// YYYY-MM-DD if the view is "days"
+            	// YYYY-Wxx if the view is "weeks"
+            	// YYYY-MM if the view is "months"
+            	// YYYY-Qx if the view is "quarters"
+            	// YYYY-Sx if the view is "semesters"
                 // YYYY if the view is "years"
                 // so it's easy to identify elements in the list
                 elements.each(function() {
@@ -2636,6 +3021,15 @@
                             // attach a "date" data attribute to each element in the form of of YYYY-MM-DD for easily identifying sought elements
                             $(this).data('date', selected_year + '-' + str_pad(selected_month + 1, 2) + '-' + str_pad(to_int($(this).text()), 2));
 
+                    // if view is "weeks"
+                    } else if (view === "weeks") {
+
+                    	// get the week's number for the element's class
+                    	var matches = $(this).attr('class').match(/dp\_week\_([0-9]+)/);
+
+                    	// attach a "date" data attribute to each element in the form of of YYYY-Wxx for easily identifying sought elements
+                    	$(this).data('date', selected_year + '-W' + matches[1]);
+
                     // if view is "months"
                     } else if (view == 'months') {
 
@@ -2644,6 +3038,24 @@
 
                         // attach a "date" data attribute to each element in the form of of YYYY-MM for easily identifying sought elements
                         $(this).data('date', selected_year + '-' + str_pad(to_int(matches[1]) + 1, 2));
+
+                    // if view is "quarters"
+                    } else if (view === "quarters") {
+
+                    	// get the quarter's number for the element's class
+						var matches = $(this).attr('class').match(/dp\_quarter\_([0-9]+)/);
+
+						// attach a "date" data attribute to each element in the form of of YYYY-Tx for easily identifying sought elements
+						$(this).data('date', selected_year + '-T' + matches[1]);
+
+					// if view is "semesters"
+                    } else if (view === "semesters") {
+
+                    	// get the semester's number for the element's class
+						var matches = $(this).attr('class').match(/dp\_semester\_([0-9]+)/);
+
+						// attach a "date" data attribute to each element in the form of of YYYY-Sx for easily identifying sought elements
+						$(this).data('date', selected_year + '-S' + matches[1]);
 
                     // if view is "years"
                     } else
@@ -2736,7 +3148,11 @@
                 default_date = new Date(year, month, day, 12, 0, 0),
 
                 // pointer to the cells in the current view
-                view_cells = (view == 'days' ? daypicker_cells : (view == 'months' ? monthpicker_cells : yearpicker_cells)),
+                view_cells = (view == 'days' ? daypicker_cells :
+								(view == 'weeks' ? weekpicker_cells :
+									(view == 'months' ? monthpicker_cells :
+										(view == 'quarters' ? quarterpicker_cells :
+											(view == 'semesters' ? semesterpicker_cells : yearpicker_cells))))),
 
                 // the selected date, formatted correctly
                 selected_value = format(default_date);
@@ -2754,6 +3170,12 @@
                 default_year = default_date.getFullYear();
                 selected_year = default_date.getFullYear();
                 default_day = default_date.getDate();
+                selected_week = getWeekNumber(default_date);
+                default_week = getWeekNumber(default_date);
+                selected_quarter = getQuarterNumber(default_date);
+                default_quarter = getQuarterNumber(default_date);
+                selected_semester = getSemesterNumber(default_date);
+                default_semester = getSemesterNumber(default_date);
 
                 // remove the "selected" class from all cells in the current view
                 view_cells.removeClass('dp_selected');
@@ -2944,6 +3366,69 @@
             return w;
 
         };
+
+    	/**
+		 * Calculate the quarter number for a given date.
+		 *
+		**/
+        var getQuarterNumber = function(date) {
+	        return Math.floor((date.getMonth() - 1) / 3) + 1;
+        }
+
+    	/**
+		 * Calculate the semester number for a given date.
+		 *
+		**/
+        var getSemesterNumber = function(date) {
+	        return Math.floor((date.getMonth() - 1) / 6) + 1;
+        }
+
+    	/**
+		 * Return the first date of the given week number and year.
+		 *
+		**/
+        var getFirstDateOfWeek = function (weekNumber, month, year) {
+			// adaptation when week straddle two years 
+        	year = getAdjustedYear(weekNumber, month, year);
+
+        	return moment().year(year).isoWeek(weekNumber).isoWeekday(1).toDate();
+        }
+
+    	/**
+		 * Return the first date of the given quarter number and year.
+		 *
+		**/
+        var getFirstDateOfQuarter = function (quarterNumber, year) {
+        	// first month
+        	var firstMonth = 3 * quarterNumber;
+        	return moment().year(year).month(firstMonth).date(1).toDate();
+        }
+
+    	/**
+		 * Return the first date of the given semester number and year.
+		 *
+		**/
+        var getFirstDateOfSemester = function (semesterNumber, year) {
+        	// first month
+        	var firstMonth = 6 * semesterNumber;
+        	return moment().year(year).month(firstMonth).date(1).toDate();
+        }
+
+    	/**
+		 * Return the adjusted year when the week straddles two years.
+		 *
+		**/
+        var getAdjustedYear = function(weekNumber, month, year)
+	    {
+	    	if (weekNumber === 1 && month === 11) {
+	    		year++;
+	    	}
+	    	else if ((weekNumber === 52 || weekNumber === 53) && month === 0) {
+	    		year--;
+	    	}
+
+		    return year;
+	    }
 
         // since with jQuery 1.9.0 the $.browser object was removed, we rely on this piece of code from
         // http://www.quirksmode.org/js/detect.html to detect the browser

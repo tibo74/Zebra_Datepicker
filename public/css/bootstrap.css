@@ -13,7 +13,7 @@
 .Zebra_DatePicker *:after,
 .Zebra_DatePicker *:before  { -moz-box-sizing: content-box !important; -webkit-box-sizing: content-box !important; box-sizing: content-box !important }
 
-.Zebra_DatePicker           { position: absolute; background: #FFF; border: 1px solid #999; z-index: 1200; padding: 5px; top: 0 }
+.Zebra_DatePicker           { position: absolute; background: #FFF; border: 1px solid #999; z-index: 100; padding: 5px; top: 0 }
 
 .Zebra_DatePicker *         { margin: 0; padding: 0; color: #373737; background: transparent; border: none }
 
@@ -27,12 +27,18 @@
 .Zebra_DatePicker td                         { cursor: pointer }
 
 .Zebra_DatePicker .dp_daypicker,
+.Zebra_DatePicker .dp_weekpicker,
 .Zebra_DatePicker .dp_monthpicker,
+.Zebra_DatePicker .dp_quarterpicker,
+.Zebra_DatePicker .dp_semesterpicker,
 .Zebra_DatePicker .dp_yearpicker             { margin-top: 3px }
 
 .Zebra_DatePicker .dp_daypicker td,
 .Zebra_DatePicker .dp_daypicker th,
+.Zebra_DatePicker .dp_weekpicker td,
 .Zebra_DatePicker .dp_monthpicker td,
+.Zebra_DatePicker .dp_quarterpicker td,
+.Zebra_DatePicker .dp_semesterpicker td,
 .Zebra_DatePicker .dp_yearpicker td         { width: 30px }
 
 .Zebra_DatePicker,
@@ -66,9 +72,21 @@
 .Zebra_DatePicker td.dp_selected                { background: #039; color: #FFF !important }
 .Zebra_DatePicker td.dp_week_number             { cursor: text; font-weight: bold }
 
+/* = WEEKPICKER
+----------------------------------------------------------------------------------------------------------------------*/
+.Zebra_DatePicker .dp_weekpicker td    { width: 33% }
+
 /* = MONTHPICKER
 ----------------------------------------------------------------------------------------------------------------------*/
 .Zebra_DatePicker .dp_monthpicker td    { width: 33% }
+
+/* = QUARTERPICKER
+----------------------------------------------------------------------------------------------------------------------*/
+.Zebra_DatePicker .dp_quarterpicker td    { width: 50% }
+
+/* = SEMESTERPICKER
+----------------------------------------------------------------------------------------------------------------------*/
+.Zebra_DatePicker .dp_semesterpicker td    { width: 50% }
 
 /* = YEARPICKER
 ----------------------------------------------------------------------------------------------------------------------*/
