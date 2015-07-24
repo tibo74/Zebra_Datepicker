@@ -897,8 +897,8 @@
 
                     }
 
-                	// break the loop if last selectable date passed. No date available in this case
-                    if (first_selectable_year > last_selectable_year && first_selectable_month > last_selectable_month) {
+                	// break the loop if last selectable year passed. No date available in this case
+                    if (new Date(first_selectable_year, first_selectable_month, first_selectable_day) > new Date(last_selectable_year, last_selectable_month, last_selectable_day)) {
                     	break;
                     }
 
@@ -924,7 +924,7 @@
                     first_selectable_day = date.getDate();
 
                 	// break the loop if last selectable date passed. No date available in this case
-                    if (first_selectable_year > last_selectable_year && first_selectable_month > last_selectable_month && first_selectable_day > last_selectable_day) {
+                    if (date > new Date(last_selectable_year, last_selectable_month, last_selectable_day)) {
                     	break;
                     }
                 }
